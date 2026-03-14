@@ -1,0 +1,361 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage[numbers]{natbib}
+
+\title{Do Prediction Markets Lead the Polls?\\
+An Evidence Synthesis and Protocol Proposal for Testing the Lead--Lag Relationship Between Polymarket and Traditional Polling Aggregates During High-Volatility Election Events}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This manuscript is an evidence synthesis and empirical protocol proposal, not a completed results paper. Its purpose is to evaluate whether the hypothesis that Polymarket leads published polling aggregates by roughly 48--72 hours during high-volatility election events is theoretically plausible, empirically testable, and operationalizable to replication standard. Existing research supports the broader mechanism that prediction markets can aggregate information quickly and that markets and polls are often complementary rather than redundant forecasting inputs \citep{predictionmarkets2004aeaweb, modelsmarketsandth2021arxiv}. At the same time, the currently supplied source base does not justify a universal claim that Polymarket systematically leads polling aggregates by two to three days across elections or event types. The strongest defensible prior is conditional: a short-horizon market lead is most plausible after abrupt, high-salience shocks and in sufficiently liquid contracts, while visible movement in published polling averages may emerge later because aggregate construction relies on field dates, release timing, weighting, and smoothing rules documented for at least one prominent aggregator, FiveThirtyEight \citep{howourpollingavera2023fivethir}. To test this proposition rigorously, the manuscript specifies a pre-registered design with explicit event-coding rules, contract inclusion thresholds, aligned sampling frequency, lag-order selection, overlapping-event handling, heteroskedasticity- and autocorrelation-robust inference, and multiplicity control. The intended contribution is methodological and interpretive: to distinguish genuine lead--lag structure from mere differences in publication timing, and to clarify when rapid market movement should be treated as an early-warning signal rather than as a substitute for survey-based measurement.
+\end{abstract}
+
+\section{Introduction}
+
+Consider a concrete motivating example. A nationally televised debate ends at 10:35 p.m. Eastern time. Within minutes, traders may react on a prediction market to clips, commentary, donor sentiment, perceived candidate performance, and expectations about how undecided voters will respond. A published polling average, however, may not move visibly until one or more new polls finish fieldwork, are released, and are then absorbed into an aggregator. If the market moves sharply overnight and the polling average changes two days later, observers face a difficult interpretive question: did the market genuinely absorb electorally relevant information earlier, or are the two series simply expressing the same shock on different clocks?
+
+This paper takes that timing problem as its central object. More specifically, it develops a publication-ready protocol for testing whether Polymarket price signals systematically lead changes in traditional polling aggregates by roughly 48--72 hours during high-volatility election events. The manuscript is deliberately framed as an evidence synthesis and protocol proposal rather than a completed empirical article. That choice resolves an important ambiguity. The supplied evidence supports a serious research design, but it does not support reporting findings that have not yet been estimated event by event.
+
+The main claim of this manuscript is therefore narrow and procedural. A lead of this kind is plausible and testable, but it should be treated as a conditional empirical quantity rather than as a stylized fact. Foundational work argues that prediction markets often aggregate dispersed information effectively and can generate accurate forecasts under favorable conditions \citep{predictionmarkets2004aeaweb}. More recent election-forecasting work suggests that markets and poll-informed models can contribute distinct signal, with relative performance varying over the campaign calendar and simple averaging often improving performance \citep{modelsmarketsandth2021arxiv}. A recent Polymarket-focused preprint further suggests that betting-market signals may outperform polling in some 2024 settings, especially in swing states, but that paper remains non-peer-reviewed and should be treated as provisional rather than dispositive \citep{arebettingmarketsb2025arxiv}.
+
+Three conceptual points follow. First, a short-horizon lead is more plausible during abrupt, salient shocks than during quiet periods. Second, any apparent lead must be interpreted against the mechanics of polling aggregation. In this manuscript, claims about polling-average lag are intentionally limited to documented aggregator procedures, especially the published FiveThirtyEight methodology, rather than generalized to all polling systems \citep{howourpollingavera2023fivethir}. Third, even if markets lead published aggregates, that does not imply that markets are measuring voter intent more directly. Prediction markets and polls measure related but distinct objects.
+
+The manuscript contributes in five ways. First, it clarifies manuscript identity by presenting a protocol and evidence synthesis rather than an empirical results paper. Second, it defines key constructs precisely, including what counts as a high-volatility event, a liquid contract, a lead, and an abnormal move. Third, it specifies a reproducible data-construction pipeline using Polymarket programmatic access and documented polling-aggregate methodology \citep{introductionpolymandpolymark, howourpollingavera2023fivethir}. Fourth, it lays out a concrete inferential design combining event studies, distributed-lag models, and vector autoregression with robust inference. Fifth, it identifies the principal threats to validity and the decision criteria that would justify stronger substantive claims.
+
+The paper proceeds as follows. Section 2 reviews the literature and differentiates strong evidence from suggestive evidence. Section 3 defines the conceptual objects and hypotheses. Section 4 specifies the data pipeline and inclusion rules. Section 5 presents the replication-standard empirical protocol. Section 6 explains the expected patterns and the decision logic for interpreting estimates. Section 7 addresses robustness, limitations, and threats to validity. Section 8 discusses implications for election analysis and hybrid forecasting workflows. Section 9 concludes.
+
+\section{Background and Related Literature}
+
+\subsection{Prediction markets as fast information aggregators}
+The starting point for this project is the classic argument that prediction markets can aggregate dispersed information into continuously updating prices. \citet{predictionmarkets2004aeaweb} synthesize early evidence and conclude that market-generated forecasts are often informative and in some settings compare favorably with common benchmarks. For the present topic, the key implication is temporal rather than absolute. A market can reprice whenever traders choose to act; a survey-based aggregate cannot update until underlying polls are fielded, released, and incorporated.
+
+That difference does not make markets automatically superior. Market prices can reflect thin trading, temporary order imbalance, strategic behavior, platform composition, and sentiment-driven overshooting. Even so, the literature gives a strong basis for taking short-run informational responsiveness seriously. The relevant hypothesis is not that markets are always more accurate than polls; it is that markets may express new information sooner under some conditions.
+
+\subsection{Markets, polls, and time-varying complementarity}
+A second branch of literature compares election forecasting inputs rather than treating them as interchangeable substitutes. \citet{modelsmarketsandth2021arxiv} study daily battleground-state forecasts during the 2020 cycle and find that relative performance varies over time: markets perform better earlier in the campaign, while model-based forecasts informed by polling perform better closer to election day. They also report gains from combining sources. This result is important because it suggests that the relation between markets and polls is not winner-take-all. Different signal families may be useful at different horizons.
+
+That framing is more appropriate for the present question than a simple horse race. A short-run lead by markets, if it exists, would fit naturally into a complementary framework: markets as rapid-response indicators and polls as slower but more direct measurements of respondent preferences.
+
+\subsection{Evidence on information flow and its limits}
+One directly relevant citation in the supplied source set is \citet{informationflowbet2018ideas}, which is indexed as a study of information flow between prediction markets, polls, and media during the 2008 presidential primaries. Because the present record includes metadata and summary information rather than verified full-text quotation, this manuscript uses the paper cautiously. Specifically, it cites that source as evidence that information-flow questions between markets and polls have been studied in the election context, not as decisive proof of any particular lag magnitude or universal direction.
+
+The same caution applies to \citet{marketsvspollsasel2000scienced}. The source list identifies it as an Electoral Studies article comparing markets and polls historically, but the materials provided here are not sufficient to support strong paper-specific claims beyond the broad proposition that markets have long been considered serious electoral forecasting instruments. Accordingly, the article is used in this manuscript as background context for the broader literature rather than as a key pillar for the 48--72 hour hypothesis.
+
+This evidentiary discipline matters. The protocol proposed here is intended to improve on anecdotal reasoning and metadata-level inference by requiring transparent event-level estimation. In other words, the literature supports the question and the mechanism; it does not yet settle the answer.
+
+\subsection{Polymarket-specific evidence}
+The recent preprint by \citet{arebettingmarketsb2025arxiv} is directly relevant because it concerns betting markets and 2024 political elections, with claims that Polymarket outperformed polling in some settings and especially in swing states. Yet its evidentiary status remains intermediate. It is recent, non-peer-reviewed, and oriented more toward predictive performance than toward tightly identified lead--lag timing. For that reason, it supports the practical importance of the inquiry without licensing strong conclusions about causal sequencing.
+
+\subsection{Polling aggregates as constructed series}
+Claims about polling delay are often made too broadly. This manuscript therefore narrows them. The argument is not that all polls are intrinsically slow or that every aggregate necessarily lags opinion by the same amount. The narrower and better-supported claim is that a published polling average can move more slowly than a real-time market because aggregate construction uses explicit rules regarding field dates, weighting, and smoothing. FiveThirtyEight documents these mechanics publicly, making it an appropriate source for describing one important aggregation process \citep{howourpollingavera2023fivethir}. The empirical design below treats these rules as a measurement issue to be modeled rather than as a rhetorical point.
+
+\section{Definitions and Conceptual Framing}
+
+\subsection{What the paper means by a lead}
+A lead is defined here as incremental predictive content from lagged Polymarket changes for subsequent changes in a polling aggregate, after accounting for autocorrelation, event timing, and shared-news confounding as far as the available design permits. Formally, the hypothesis concerns whether coefficients on market lags in the 24--72 hour range are positive, stable, and substantively interpretable during pre-specified event windows.
+
+This definition excludes weaker usages. A simple earlier timestamp on a market move is not enough. Nor is visual precedence in a single case study. The protocol requires convergence across multiple diagnostics: event-window plots, distributed-lag regression, and at least one system-level time-series model.
+
+\subsection{What counts as a high-volatility election event}
+A high-volatility election event is any discrete shock meeting all four of the following criteria:
+\begin{enumerate}
+\item It is tied to a publicly identifiable timestamp or bounded announcement interval.
+\item It plausibly affects electoral expectations for a national or state race rather than only downstream commentary.
+\item It is salient enough to trigger measurable same-day market activity in at least one relevant contract.
+\item It is not mechanically defined using the outcome variables themselves.
+\end{enumerate}
+
+Examples include presidential or vice-presidential debates, candidate entry or withdrawal announcements, major court rulings involving a leading candidate, major health disclosures, convention acceptance speeches, assassination attempts, and major macroeconomic releases that dominate political coverage. Routine daily campaign messaging, ordinary ad buys, and diffuse commentary cycles are excluded.
+
+To avoid post-treatment event selection, the event list should be compiled before inspecting lead estimates. Each event must receive a source timestamp, event type label, and confidence code indicating whether the event is sharp-timed or diffuse.
+
+\subsection{What the paper means by liquidity}
+Liquidity is operationalized at the contract-by-interval level using available market data. Because exact market microstructure fields may vary by endpoint, the protocol defines a contract as \emph{high-liquidity eligible} if all of the following conditions are met over the event window:
+\begin{enumerate}
+\item median interval trade volume is above the 60th percentile of contracts in the relevant election category;
+\item total event-window volume exceeds a pre-registered minimum, proposed here as 500 outcome shares or the nearest platform-native equivalent if share counts are not directly exposed;
+\item at least 75\% of intervals in the event window contain an observed trade or midpoint update;
+\item no single interval accounts for more than 50\% of total event-window volume, which helps flag one-shot prints in otherwise inactive markets.
+\end{enumerate}
+
+If bid--ask spread data are available, a tighter high-liquidity definition should additionally require an event-window median spread below the category median. If spread data are unavailable, the study should state that liquidity is proxied by activity and continuity rather than directly observed trading frictions.
+
+\subsection{Markets and polling aggregates are different measurement objects}
+The protocol assumes from the outset that the two signal families do not measure the same latent variable in identical form. A prediction-market contract reflects a continuously traded assessment of an eventual event under a platform-specific payoff structure. A polling aggregate summarizes sampled respondent answers to survey questions, then smooths those observations into a published series. Because the measurement targets differ, a lead should be interpreted as sequencing in expression and aggregation, not necessarily as superiority in truthfulness.
+
+\begin{table}[t]
+\centering
+\caption{Conceptual differences between the two signal families}
+\begin{tabular}{p{3.0cm}p{5.2cm}p{5.2cm}}
+\toprule
+Feature & Polymarket series & Polling aggregate series \\
+\midrule
+Underlying object & Market-implied probability of a contract outcome & Constructed summary of survey responses \\
+Update process & Near-continuous trading when active & Poll fielding, release, weighting, and smoothing \\
+Main advantage & Fast expression of trader beliefs & Direct observation of respondent answers \\
+Main vulnerability & Thin trading, sentiment spikes, manipulation risk & Publication delay and smoothing-induced inertia \\
+Interpretive risk & Treating transient repricing as stable information & Treating published averages as real-time opinion \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Data and Source Construction}
+
+\subsection{Sampling frame}
+The core sampling frame is all Polymarket election contracts corresponding to U.S. presidential national outcome markets and state-level winner markets during the study period chosen by the researcher. The preferred initial window is the final six months before Election Day for a focal cycle, because that period combines sustained liquidity with multiple high-salience events. The frame may be expanded to include earlier months if contract continuity is adequate.
+
+The polling side should use at least one documented aggregate with timestamped updates and transparent methodology. Because the supplied source base specifically documents FiveThirtyEight's aggregation rules, this protocol treats FiveThirtyEight as the primary aggregation benchmark \citep{howourpollingavera2023fivethir}. If additional aggregators are included, they should be analyzed as robustness checks unless equally transparent construction metadata are available.
+
+\subsection{Polymarket data retrieval and preprocessing}
+Polymarket documentation indicates that programmatic market access is available for reproducible data collection \citep{introductionpolymandpolymark}. The protocol proceeds as follows.
+\begin{enumerate}
+\item Retrieve historical contract-level observations for all included national and state election markets.
+\item Standardize timestamps to Coordinated Universal Time and then store local-event conversions for interpretation.
+\item Construct regular four-hour bins as the primary analysis frequency. Hourly bins are retained for sensitivity checks.
+\item Within each bin, compute last traded price; if no trade exists but quotes are available, use midpoint; if neither is available, mark the interval missing rather than carrying forward values in the main specification.
+\item Record interval volume, cumulative event-window volume, and spread proxies when available.
+\item Winsorize interval price changes at the 0.5th and 99.5th percentiles only in sensitivity checks; the main specification retains raw changes except for obvious data errors.
+\end{enumerate}
+
+The main market outcome is the interval change in implied probability:
+\[
+\Delta M_{i,t} = M_{i,t} - M_{i,t-1},
+\]
+where $i$ indexes the contract and $t$ indexes four-hour intervals.
+
+\subsection{Polling aggregate construction}
+The protocol uses two polling series when possible.
+
+First, it uses the published aggregate itself, timestamped at the time the aggregator updates. This series captures what public observers actually saw in real time.
+
+Second, it constructs a \emph{field-date aligned polling series} to reduce publication-date bias. When underlying poll records are available, each poll is assigned to the midpoint of its field period. The aggregate is then rebuilt as a daily latent series using the same publicly documented directional logic as the source aggregator where feasible, but without delaying observation to publication time. If exact proprietary weighting components are unavailable, the paper must state that the field-date aligned series is a transparent approximation rather than a perfect replication.
+
+This two-series strategy is essential for interpretation. A market may lead the published aggregate but not the reconstructed field-date series. In that case, the result would be better understood as a lead over publication and smoothing mechanics rather than over underlying measured opinion.
+
+\subsection{De-smoothed polling change measure}
+Let $A_t$ denote the published aggregate and $F_t$ the field-date aligned series. The main polling outcome is either:
+\[
+\Delta P_t = A_t - A_{t-1}
+\]
+or, in the preferred measurement-corrected specification,
+\[
+\Delta P_t^{\ast} = F_t - F_{t-1}.
+\]
+
+The study should report both. If they diverge materially, the interpretation section must distinguish lead over the public aggregate from lead over reconstructed opinion measurement.
+
+\subsection{Event file construction}
+Each event receives a unique identifier and the following fields:
+\begin{enumerate}
+\item event type;
+\item official timestamp or bounded interval;
+\item affected geography (national only, selected states, or all states);
+\item sharp versus diffuse timing code;
+\item ex ante salience rating based on public coverage volume threshold or pre-registered editorial sources;
+\item overlap flag indicating whether another event enters the estimation window.
+\end{enumerate}
+
+Only sharp-timed events enter the main event-study specification. Diffuse events are reserved for appendix-style sensitivity analysis.
+
+\subsection{Inclusion and exclusion rules}
+A contract-event pair is included in the primary analysis only if:
+\begin{enumerate}
+\item the contract is active for the full $[-72,+72]$ hour window;
+\item high-liquidity eligibility is satisfied;
+\item at least 80\% of four-hour intervals in the window have observed price or midpoint data;
+\item a comparable polling series exists for the relevant geography.
+\end{enumerate}
+
+Contract-event pairs are excluded if the contract undergoes a rule change, contract wording change, obvious data corruption, or market suspension during the core window.
+
+\begin{table}[t]
+\centering
+\caption{Primary variables and operational definitions}
+\begin{tabular}{p{3.1cm}p{4.2cm}p{5.3cm}}
+\toprule
+Variable & Construction & Interpretation \\
+\midrule
+$\Delta M_{i,t}$ & Four-hour change in market-implied probability & High-frequency market response \\
+$\Delta P_t$ & Change in published polling aggregate & Publicly visible aggregate movement \\
+$\Delta P_t^{\ast}$ & Change in field-date aligned polling series & Approximate opinion movement net of publication timing \\
+$L_{i,e}$ & Liquidity eligibility indicator for contract $i$, event $e$ & Tests whether leadership is stronger in deeper markets \\
+$E_e$ & Event identifier and type label & Organizes event-study estimation \\
+$O_e$ & Overlap flag for neighboring events & Supports exclusion or truncation rules \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Methodology and Analytical Framework}
+
+\subsection{Primary estimand}
+The primary estimand is the cumulative predictive effect of lagged market changes over the 24--72 hour horizon on subsequent polling changes during high-volatility events. The main null hypothesis is:
+\[
+H_0: \sum_{k=6}^{18} \beta_k = 0,
+\]
+where four-hour bins imply that lags $k=6$ through $18$ span 24 to 72 hours.
+
+The primary alternative is:
+\[
+H_1: \sum_{k=6}^{18} \beta_k > 0
+\]
+for event-window observations in the direction implied by the event-specific contract. The sign convention must be harmonized in advance so that positive values always indicate movement favorable to the same candidate or outcome.
+
+\subsection{Worked example of the protocol}
+To make the design concrete, consider a presidential debate held at time $t_0$. The study would: (i) open a $[-72,+72]$ hour event window; (ii) construct four-hour price changes for each eligible national and swing-state contract; (iii) record the published polling aggregate path and the field-date aligned alternative; (iv) estimate whether market changes in the intervals immediately after $t_0$ predict polling changes over the next six to eighteen intervals; and (v) compare that event's lead profile with the pooled average across events of the same type. The same mechanical pipeline is then applied to court rulings, candidate exits, or other pre-registered events.
+
+\subsection{Event-study timing framework}
+The event study is the center of the design because the substantive claim is explicitly conditional on high-volatility windows. For each event $e$, define event time $\tau \in [-18,18]$ in four-hour units around timestamp $t_0^e$. The main descriptive objects are cumulative changes:
+\[
+CM_{i,e}(\tau) = M_{i,t_0^e+\tau} - M_{i,t_0^e-1}
+\]
+and
+\[
+CP_{e}(\tau) = P_{t_0^e+\tau} - P_{t_0^e-1}.
+\]
+
+These series are then averaged across events, stratified by event type and liquidity status. The protocol does not interpret these plots as causal proof. Instead, they serve as transparent diagnostics for whether visible sequencing is consistent with the lead hypothesis.
+
+\begin{figure}[t]
+\centering
+\fbox{\parbox{0.94\linewidth}{
+\vspace{0.15cm}
+\textbf{Figure concept: timing of a single event-window comparison}\\
+\texttt{t-72h ........ t-24h ..... t0 event ..... t+24h ..... t+72h}\\
+\texttt{| baseline | immediate market repricing | poll fieldwork/publication/aggregate update |}\\
+Primary comparison: do market moves concentrated near \texttt{t0} predict subsequent movement in the published aggregate and, separately, in the field-date aligned polling series?
+\vspace{0.15cm}
+}}
+\caption{Workflow timeline for the proposed event-window design. The figure is intentionally schematic. It emphasizes that the key empirical problem is temporal alignment: market repricing may occur almost immediately after the event, while visible aggregate movement depends on poll fieldwork, publication timing, and aggregation.}
+\end{figure}
+
+\subsection{Distributed-lag specification}
+The main inferential model is a distributed-lag panel regression estimated on event-window observations:
+\[
+\Delta P_{g,t} = \alpha_g + \lambda_e + \sum_{k=0}^{18} \beta_k \Delta M_{g,t-k} + \theta Z_{g,t} + \varepsilon_{g,t},
+\]
+where $g$ indexes geography or race, $e$ indexes events, $\alpha_g$ are geography fixed effects, and $\lambda_e$ are event fixed effects. The vector $Z_{g,t}$ includes at minimum indicators for post-event intervals, a low-information overnight interval flag, and a missingness flag if the polling series is interpolated between observed update points.
+
+The pre-registered lag order is 18 four-hour intervals, corresponding to 72 hours. This is not selected after inspection; it is chosen to match the substantive hypothesis. A secondary model with 6 lags at daily frequency serves as a robustness check.
+
+The primary coefficient summary is not any single lag but the cumulative lag mass over 24--72 hours. The protocol also reports the share of total positive lag mass falling in the 24--72 hour band. This discourages over-interpretation of one noisy coefficient.
+
+\subsection{Lag-order selection and model discipline}
+Although the primary lag horizon is fixed ex ante by the hypothesis, auxiliary lag selection still matters for system models. The protocol therefore applies the following rule: the main distributed-lag regressions use 18 four-hour lags by design; VAR lag order is selected by the Bayesian information criterion subject to a maximum of 18 four-hour lags and a minimum of 6. If the selected lag order differs across event types, the study reports that heterogeneity rather than forcing a pooled choice.
+
+\subsection{Serial dependence and inference}
+Election time series are serially dependent, and event windows create additional within-event correlation. The main regression therefore uses heteroskedasticity- and autocorrelation-consistent standard errors with a pre-specified bandwidth corresponding to six four-hour intervals. As a stronger robustness check, the study also reports two-way clustered standard errors by geography and event when the panel structure supports them.
+
+Because the event count may be modest, the paper should additionally report wild-cluster bootstrap p-values for the main cumulative-lag hypothesis when feasible. This is especially important if the number of events rather than the number of intervals is the effective source of variation.
+
+\subsection{Multiplicity control}
+The protocol distinguishes one primary test from several secondary tests. The primary test is the cumulative 24--72 hour market-lead coefficient in high-volatility event windows using the field-date aligned polling series. Secondary tests include the same model on the published aggregate, heterogeneity by event type, and subsample differences by liquidity and swing-state status.
+
+To control multiplicity, the study applies the Holm correction within each family of secondary hypotheses. The primary hypothesis is evaluated unadjusted because it is singular and pre-registered. Any exploratory subgroup analysis beyond the pre-specified families must be labeled exploratory.
+
+\subsection{Cross-correlation and VAR as supporting diagnostics}
+The protocol also estimates event-window cross-correlation functions between $\Delta M_t$ and both polling series. These results are descriptive and should not be treated as causal. Their main value is visual: if the maximum positive correlation consistently occurs when markets are shifted ahead of polls by roughly 24--72 hours during event windows but not outside them, the pattern supports the protocol's motivating premise.
+
+A companion VAR is estimated on the pooled event-window panel after demeaning by geography and event. The purpose is modest. The VAR asks whether lagged market changes add predictive content for polling changes beyond polling autoregression, and whether the reverse relation is comparably strong. The manuscript should avoid causal language and refer only to incremental predictive content.
+
+\subsection{Handling overlapping events}
+Overlapping events are a serious threat to clean interpretation. The main protocol uses a strict exclusion rule: if two high-volatility events occur within 72 hours of each other for the same geography, only the first enters the primary event-study sample unless the second can be shown to affect a clearly distinct set of contracts. A secondary specification instead truncates each event window at the onset of the next event. Results from the truncated specification are reported as robustness checks.
+
+This rule trades sample size for interpretability. That trade is desirable in a design where sequencing is the central object.
+
+\subsection{Missing data and interpolation}
+The protocol avoids forward-filling market prices in the primary specification because that can mechanically suppress volatility. Missing market intervals remain missing, and contract-event pairs with excessive missingness are excluded under the rules above. For polling aggregates, interpolation is unavoidable if the series is observed less frequently than four-hour bins. The main approach uses stepwise carry-forward only for the published aggregate because that reflects the information set available to observers; the field-date aligned series uses daily values mapped to four-hour bins. All interpolation choices must be disclosed prominently.
+
+\subsection{Placebo design}
+The study includes two placebo strategies. First, it samples non-event windows matched on day of week and campaign period to test whether similar lead patterns appear absent salient shocks. Second, it runs a lead test with the event time randomly reassigned within the same month. A meaningful market-lead finding should weaken materially under both placebos.
+
+\section{Analytical Expectations and Decision Rules}
+
+\subsection{What would count as supportive evidence}
+Because this is a protocol paper, the correct output is not a claimed result but a set of decision rules. The evidence would support the central hypothesis if the following four conditions hold jointly:
+\begin{enumerate}
+\item the cumulative lagged market effect over 24--72 hours is positive and statistically distinguishable from zero in the primary event-window model;
+\item the effect is stronger in high-liquidity contracts than in lower-liquidity contracts;
+\item the effect attenuates outside event windows or under placebo timing;
+\item the pattern survives, at least in attenuated form, when the polling outcome is the field-date aligned series rather than only the published aggregate.
+\end{enumerate}
+
+This joint standard is intentionally demanding. A result that appears only for the published aggregate but vanishes for the field-date aligned series would still be substantively interesting, but it would justify a narrower conclusion: markets may lead public aggregate updates, not necessarily underlying measured opinion.
+
+\subsection{What would count as weak or ambiguous evidence}
+Three outcomes would warrant caution. First, a finding concentrated in thin or sporadically traded contracts would be hard to interpret as meaningful information aggregation. Second, a lead that appears equally strongly in placebo windows would suggest spurious timing structure. Third, a result driven by one event type or one election cycle would indicate context dependence rather than a general timing law.
+
+\subsection{Expected heterogeneity}
+The most plausible prior is heterogeneous rather than uniform. If a lead exists, it is likely to be larger in swing states, where information value and trading attention are greater; in high-liquidity contracts, where price discovery is more credible; and in event types that traders can interpret quickly, such as debates or candidate withdrawals. Conversely, the lead may be small or unstable near election day, when polling is denser and market repricing may simply anticipate information that is about to be reflected in new surveys anyway \citep{modelsmarketsandth2021arxiv}.
+
+\section{Robustness, Limitations, and Threats to Validity}
+
+\subsection{Shared-news endogeneity}
+The leading identification problem is that both markets and polls may respond to the same public shock. In that setting, a lead can reflect differential expression timing rather than unique informational content. The proposed event design, placebo tests, and field-date aligned polling series reduce but do not eliminate this problem. Accordingly, any positive finding should be described as evidence of predictive sequencing, not proof that markets possess superior private information.
+
+\subsection{Measurement mismatch}
+A second threat is measurement mismatch. Markets refer to eventual outcomes under specific contract terms; polls measure contemporaneous respondent reports. Those objects are related but not equivalent. A trader may rationally update a market because she expects media narratives, donor reactions, or turnout expectations to shift before respondents in surveys do. That would generate a lead without implying error in either series.
+
+\subsection{Platform-specific external validity}
+Even a strong Polymarket result would not automatically generalize to all political betting markets. Platform rules, user composition, fees, interface design, and susceptibility to manipulation all affect price formation. The Polymarket-specific preprint is therefore useful context but not a substitute for broader replication \citep{arebettingmarketsb2025arxiv}. The manuscript should state plainly that any estimated lead is platform- and cycle-specific unless reproduced elsewhere.
+
+\subsection{Evidence-tier heterogeneity}
+The source base itself is heterogeneous. \citet{predictionmarkets2004aeaweb} is high-credibility peer-reviewed scholarship. \citet{modelsmarketsandth2021arxiv} and \citet{arebettingmarketsb2025arxiv} are preprints. \citet{howourpollingavera2023fivethir} is methodological documentation for a specific polling aggregator. \citet{informationflowbet2018ideas} and \citet{marketsvspollsasel2000scienced} are relevant academic leads in the literature, but the evidence available to this manuscript from the supplied record is not sufficient to attribute strong paper-specific findings beyond cautious contextual use. This asymmetry is itself a limitation and should be visible to readers.
+
+\subsection{Specification sensitivity}
+Lead--lag inference can change with bin width, lag horizon, event definitions, and market-selection rules. The protocol addresses this by pre-specifying primary choices and clearly labeling robustness checks. Even so, results should not be treated as stable unless they replicate across reasonable alternatives.
+
+\subsection{Interpretation of null results}
+A null result would not imply that prediction markets are uninformative. It could mean instead that markets and polling aggregates react on similar horizons once polling is field-date aligned, or that market reactions are too noisy to predict later survey movement reliably. In this setting, a well-estimated null is informative because it disciplines anecdotal claims about dramatic market foresight.
+
+\begin{table}[t]
+\centering
+\caption{Main threats to validity and protocol responses}
+\begin{tabular}{p{4.0cm}p{6.1cm}p{3.3cm}}
+\toprule
+Threat & Why it matters & Protocol response \\
+\midrule
+Shared-news confounding & Both series may react to the same event & Event windows, placebos, cautious interpretation \\
+Publication-date bias & Published aggregate may move later for mechanical reasons & Reconstruct field-date aligned polling series \\
+Thin-market noise & One-sided trades can mimic information discovery & Liquidity eligibility thresholds and exclusions \\
+Overlapping shocks & Event windows may capture multiple causes & Exclude or truncate overlapping windows \\
+Serial dependence & Standard errors may be understated & HAC, clustered, and bootstrap inference \\
+Multiple comparisons & Many lags and subgroups inflate false positives & Single primary test and Holm correction for secondary families \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Discussion and Practical Implications}
+
+\subsection{Implications for election analysis}
+If the protocol eventually yields a robust conditional lead, the main practical lesson would be limited but useful. Analysts should not replace polls with markets. Instead, they should treat liquid market moves during pre-specified high-volatility events as provisional early-warning indicators that deserve attention before new survey evidence arrives. That interpretation would fit neatly with the complementary perspective emphasized by \citet{modelsmarketsandth2021arxiv}.
+
+If, by contrast, the protocol shows that the lead appears mainly against the published aggregate and not against the field-date aligned polling series, the lesson would be different. The result would imply that much of the apparent market advantage lies in differential publication and smoothing clocks rather than in deeper informational superiority. That would still matter, especially for journalists and practitioners who consume public aggregates in real time.
+
+\subsection{Implications for public communication}
+Public commentary often treats a market move as a direct measure of voter sentiment. This protocol suggests a more careful vocabulary. Market prices are better understood as rapidly updating beliefs about election outcomes conditional on the trader population, platform mechanics, and contract design. Polling aggregates are better understood as constructed summaries of sampled responses. The most responsible public interpretation compares them as complementary indicators with different update rules.
+
+\subsection{A proposed best-practice workflow}
+On the basis of the evidence reviewed here, a reasonable best practice for practitioners is as follows. During a major shock, monitor high-liquidity market movement immediately, but label it explicitly as preliminary. Over the next 24--72 hours, compare that movement against both incoming poll releases and any field-date aligned polling reconstruction if available. If market movement dissipates before polls update, interpret it as temporary repricing. If it persists and is later reflected in survey-based measures, interpret it as an early signal that proved durable. This is a proposed workflow, not a validated forecasting rule.
+
+\section{Conclusion}
+This manuscript has taken an explicit position on manuscript identity: it is an evidence synthesis and protocol proposal for testing a lead--lag hypothesis, not a completed empirical paper. That choice matters because the current evidence base supports a careful design more strongly than it supports a universal substantive conclusion.
+
+The defensible bottom line is straightforward. Prediction markets plausibly can react faster than published polling aggregates during abrupt election shocks, and Polymarket is a suitable setting in which to test that proposition using transparent market data \citep{predictionmarkets2004aeaweb, introductionpolymandpolymark}. Polling-aggregate mechanics documented for FiveThirtyEight also make it plausible that public aggregate movement can appear with delay relative to real-time trading \citep{howourpollingavera2023fivethir}. But the supplied literature does not establish a general 48--72 hour Polymarket lead as a settled fact, and some of the election-specific citations in the source set are best used cautiously because the present record does not verify their full findings in detail \citep{informationflowbet2018ideas, marketsvspollsasel2000scienced}.
+
+For that reason, the appropriate next step is disciplined estimation rather than stronger rhetoric. A convincing empirical study should pre-register event definitions, align market and polling clocks carefully, distinguish published aggregates from field-date aligned polling measures, apply robust time-series inference, and report placebo and liquidity-based diagnostics. Only then can the field distinguish true informational leadership from differences in update mechanics.
+
+If those tests eventually show a robust conditional lead concentrated in high-liquidity event windows, prediction markets should be treated as rapid but noisy first responders in election analysis. If the effect weakens after measurement correction or fails in placebo comparisons, the literature will still benefit by separating anecdote from replicable evidence. Either outcome would improve how markets and polls are interpreted together.
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}
